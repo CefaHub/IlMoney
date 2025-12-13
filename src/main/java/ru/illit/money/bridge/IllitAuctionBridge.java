@@ -1,14 +1,17 @@
 package ru.illit.money.bridge;
 
-import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
- * Optional compatibility bridge: uses plugins/IllitAuction/balances.yml (balances.<uuid>) as the storage.
+ * Compatibility bridge: uses plugins/IllitAuction/balances.yml (balances.<uuid>) as the storage.
+ * Note: IllitAuction keeps balances.yml in memory; IllitMoney writes to file and can also trigger reload in IllitAuction.
  */
 public final class IllitAuctionBridge {
     private final File file;
@@ -36,7 +39,22 @@ public final class IllitAuctionBridge {
     }
 
     public synchronized void set(UUID id, double amount) {
+        reload();
         cfg.set("balances." + id, Math.max(0, amount));
         try { save(); } catch (Exception ignored) {}
+    }
+
+    public synchronized Map<UUID, Double> allBalances() {
+        reload();
+        Map<UUID, Double> out = new HashMap<>();
+        ConfigurationSection sec = cfg.getConfigurationSection("balances");
+        if (sec == null) return out;
+        for (String key : sec.getKeys(false)) {
+            try {
+                UUID id = UUID.fromString(key);
+                out.put(id, Math.max(0, sec.getDouble(key, 0D)));
+            } catch (IllegalArgumentException ignored) {}
+        }
+        return out;
     }
 }
