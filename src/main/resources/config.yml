@@ -1,6 +1,0 @@
-prefix: "&7[&f&lILLIT &a&lMONEY&7]"
-currency: "айлитики"
-
-bridge:
-  # true = использовать plugins/IllitAuction/balances.yml (balances.<uuid>) как хранилище балансов
-  illitauction-balances: true
